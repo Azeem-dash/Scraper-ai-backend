@@ -5,6 +5,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .api.chat import router as chat_router
+from .api.scrap_articles import router as scraping_router
 # from .api.auth import router as auth_router
 
 app = FastAPI()
@@ -18,6 +19,8 @@ app.add_middleware(
 )
 # Include chat route from the 'chat' module
 app.include_router(chat_router)
+
+app.include_router(scraping_router, prefix="/scraping", tags=["scraping"])
 # app.include_router(auth_router)
 
 @app.get("/")
