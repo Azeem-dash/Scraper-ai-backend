@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Stream</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #output {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            margin-top: 20px;
+        }
+        .message {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Real-Time Chat Stream</h1>
+    <button id="startStream">Start Streaming</button>
+    <div id="output"></div>
+
+    <script>
+        // Get the button and output div
+        const startStreamButton = document.getElementById('startStream');
+        const outputDiv = document.getElementById('output');
+
+        // Function to start listening to the SSE stream
+        function startStream() {
+            const eventSource = new EventSource('/chat');  // Connect to the FastAPI endpoint
+            
+            // When receiving a message, append it to the output div
+            eventSource.onmessage = function(event) {
+                const newMessage = document.createElement('div');
+                newMessage.classList.add('message');
+                newMessage.textContent = event.data;  // Display the incoming data
+                outputDiv.appendChild(newMessage);
+                outputDiv.scrollTop = outputDiv.scrollHeight;  // Scroll to the bottom
+            };
+
+            // Handle any errors
+            eventSource.onerror = function() {
+                const errorMessage = document.createElement('div');
+                errorMessage.textContent = 'Error receiving stream data.';
+                outputDiv.appendChild(errorMessage);
+            };
+        }
+
+        // Start stream when the button is clicked
+        startStreamButton.addEventListener('click', startStream);
+    </script>
+
+</body>
+</html>

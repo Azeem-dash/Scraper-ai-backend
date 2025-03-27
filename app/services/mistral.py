@@ -1,10 +1,10 @@
+import json
+from fastapi import HTTPException
 from mistralai import Mistral
 import os
-from fastapi import HTTPException
 from dotenv import load_dotenv
 
 load_dotenv()
-# Initialize the Mistral client
 api_key = os.getenv("MISTRAL_API_KEY")
 if not api_key:
     raise ValueError("MISTRAL_API_KEY is missing")
@@ -12,15 +12,22 @@ if not api_key:
 client = Mistral(api_key=api_key)
 model = "mistral-large-latest"
 
-# Function to interact with Mistral API
-def get_mistral_response(query: str):
+# Generator function to handle streaming response
+async def get_mistral_response(query: str):
     try:
-        chat_response = client.chat.complete(
+        chat_response = client.chat.stream(
             model=model,
-            messages=[
-                {"role": "user", "content": query},
-            ]
+            stream=True,
+            messages=[{"role": "user", "content": query}],
         )
-        return chat_response.choices[0].message.content
+
+        # Process each chunk as it comes
+        for chunk in chat_response:
+            content = chunk.data.choices[0].delta.content
+            if content:  # Only yield non-empty content
+                print(content)
+                yield content
+
     except Exception as e:
+        print(f"Error during streaming: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

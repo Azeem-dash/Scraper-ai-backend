@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Streaming</title>
+</head>
+<body>
+    <h1>Streaming Data from API</h1>
+    <div id="chat-output"></div>
+
+    <script>
+        const outputDiv = document.getElementById('chat-output');
+        
+        const query = { query: "Hello" };
+        const requestData = JSON.stringify(query);
+
+        fetch('http://127.0.0.1:8000/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: requestData
+        })
+        .then(response => {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let done = false;
+            let value = '';
+
+            while (!done) {
+                reader.read().then(({ done, value }) => {
+                    if (done) {
+                        console.log("Stream complete");
+                    } else {
+                        value = decoder.decode(value, { stream: true });
+                        outputDiv.innerHTML += value;  // Append to the HTML output
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    </script>
+</body>
+</html>
